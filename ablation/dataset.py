@@ -144,6 +144,7 @@ def load_data(
         "synthetic": prepare_synthetic_data,
         "synthetic_multiclass": prepare_synthetic_multiclass_data,
         "synthetic_cat": prepare_synthetic_categorical_data,
+        "compas": prepare_compas_data,
     }
     dataset = options[dataset]()
     if dataset_sample_percentage < 1:
@@ -330,6 +331,48 @@ def prepare_har_data() -> NumpyDataset:
         n_classes=len(np.unique(y_train)),
         feature_names=list(feature_names),
         original_feature_names=list(feature_names),
+    )
+
+
+def prepare_compas_data() -> NumpyDataset:
+    """Prepare COMPAS Dataset
+
+    Returns:
+        NumpyDataset: dataset
+    """
+    # Load Datasets
+    x_train = pd.read_csv(path.join(DATA_PATH, "compas_x_train.csv"), index_col=0)
+    y_train = pd.read_csv(path.join(DATA_PATH, "compas_y_train.csv"), index_col=0)
+    x_test = pd.read_csv(path.join(DATA_PATH, "compas_x_test.csv"), index_col=0)
+    y_test = pd.read_csv(path.join(DATA_PATH, "compas_y_test.csv"), index_col=0)
+
+    cat_ix = [0, 3, 4, 5, 6, 7, 8, 9]
+    num_ix = [1, 2]
+
+    encoder = OneHotEncoder()
+    scaler = StandardScaler()
+
+    ct = ColumnTransformer(
+        [("categoricals", encoder, cat_ix), ("numericals", scaler, num_ix)],
+        remainder="passthrough",
+        verbose_feature_names_out=False,
+    )
+
+    x_train = ct.fit_transform(x_train)
+    x_test = ct.transform(x_test)
+
+    # Convert y to numpy array
+    y_train = np.array(y_train)
+    y_test = np.array(y_test)
+
+    return NumpyDataset(
+        X_train=x_train,
+        y_train=y_train,
+        X_test=x_test,
+        y_test=y_test,
+        n_classes=2,
+        feature_names=list(ct.get_feature_names_out()),
+        original_feature_names=cat_ix + num_ix,
     )
 
 
