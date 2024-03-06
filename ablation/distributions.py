@@ -105,10 +105,12 @@ def constant_median(X: np.ndarray, **kwargs) -> np.ndarray:
         X_LE = ohe_to_le(X, kwargs["agg_map"])
         median_mode = np.zeros((1, X_LE.shape[1]))  # To keep dimensions
         for (idx, mapping) in enumerate(kwargs["agg_map"]):
-            if len(mapping) > 1:
+            if len(mapping) > 2:
                 median_mode[0][idx] = stats.mode(X_LE[:, idx], axis=0)[0][
                     0
                 ].astype(int)
+            elif len(mapping) > 1:
+                median_mode[0][idx] = stats.mode(X_LE[:, idx], axis=0)[0].astype(int)
             else:
                 median_mode[0][idx] = np.median(X_LE[:, idx], axis=0)
         return median_mode

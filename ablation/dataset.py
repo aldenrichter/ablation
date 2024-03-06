@@ -346,8 +346,8 @@ def prepare_compas_data() -> NumpyDataset:
     x_test = pd.read_csv(path.join(DATA_PATH, "compas_x_test.csv"), index_col=0)
     y_test = pd.read_csv(path.join(DATA_PATH, "compas_y_test.csv"), index_col=0)
 
-    cat_ix = [0, 3, 4, 5, 6, 7, 8, 9]
-    num_ix = [1, 2]
+    cat_ix = ["sex", "c_charge_degree", "race_African-American", "race_Asian", "race_Caucasian", "race_Hispanic", "race_Native American", "race_Other"]
+    num_ix = ["age", "priors_count"]
 
     encoder = OneHotEncoder()
     scaler = StandardScaler()
@@ -361,15 +361,11 @@ def prepare_compas_data() -> NumpyDataset:
     x_train = ct.fit_transform(x_train)
     x_test = ct.transform(x_test)
 
-    # Convert y to numpy array
-    y_train = np.array(y_train)
-    y_test = np.array(y_test)
-
     return NumpyDataset(
         X_train=x_train,
-        y_train=y_train,
+        y_train=y_train.values.flatten(),
         X_test=x_test,
-        y_test=y_test,
+        y_test=y_test.values.flatten(),
         n_classes=2,
         feature_names=list(ct.get_feature_names_out()),
         original_feature_names=cat_ix + num_ix,
